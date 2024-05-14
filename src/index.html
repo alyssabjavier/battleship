@@ -8,13 +8,96 @@
 <body>
     <div class="container">
         <div class="user-ui">
-            <div class="user-board-div">
+            <h1 id="user-title">you</h1>
+            <div class="user-board-div"></div>
+            <h2>place ships</h2>
+            <div class="form">
+
+                <h3>kayak (2 squares)</h3>
+
+                <label for="kayak-row">row:</label>
+                <input type="phone" class="ship-row kayak" name="kayak-row">
+
+                <label for="kayak-column">column:</label>
+                <input type="phone" class="ship-column kayak" name="kayak-row">
+
+                <label for="kayak-direction">direction:</label>
+                <select class="ship-direction kayak" name="kayak-direction">
+                    <option value="horizontal">horizontal</option>
+                    <option value="vertical">vertical</option>
+                </select>
+
+                <button type="submit" class="ship-submit" data-ship="kayak" data-index="0">Submit</button>
+
+                <h3>sailboat (3 squares)</h3>
+                
+                <label for="sail-row">row:</label>
+                <input type="phone" class="ship-row sailboat" name="sail-row">
+
+                <label for="sail-column">column:</label>
+                <input type="phone" class="ship-column sailboat" name="sail-row">
+
+                <label for="sail-direction">direction:</label>
+                <select class="ship-direction sailboat" name="sail-direction">
+                    <option value="horizontal">horizontal</option>
+                    <option value="vertical">vertical</option>
+                </select>
+
+                <button type="submit" class="ship-submit" data-ship="sailboat" data-index="1">Submit</button>
+
+                <h3>pontoon (3 squares)</h3>
+                
+                <label for="pont-row">row:</label>
+                <input type="phone" class="ship-row pontoon" name="pont-row">
+
+                <label for="pont-column">column:</label>
+                <input type="phone" class="ship-column pontoon" name="pont-row">
+
+                <label for="pont-direction">direction:</label>
+                <select class="ship-direction pontoon" name="pont-direction">
+                    <option value="horizontal">horizontal</option>
+                    <option value="vertical">vertical</option>
+                </select>
+
+                <button type="submit" class="ship-submit" data-ship="pontoon" data-index="2">Submit</button>
+
+                <h3>yacht (4 squares)</h3>
+                
+                <label for="yacht-row">row:</label>
+                <input type="phone" class="ship-row yacht" name="yacht-row">
+
+                <label for="yacht-column">column:</label>
+                <input type="phone" class="ship-column yacht" name="yacht-row">
+
+                <label for="yacht-direction">direction:</label>
+                <select class="ship-direction yacht" name="yacht-direction">
+                    <option value="horizontal">horizontal</option>
+                    <option value="vertical">vertical</option>
+                </select>
+
+                <button type="submit" class="ship-submit" data-ship="yacht" data-index="3">Submit</button>
+
+                <h3>cruise (5 squares)</h3>
+                
+                <label for="cruise-row">row:</label>
+                <input type="phone" class="ship-row cruise" name="cruise-row">
+
+                <label for="cruise-column">column:</label>
+                <input type="phone" class="ship-column cruise" name="cruise-row">
+
+                <label for="cruise-direction">direction:</label>
+                <select class="ship-direction cruise" name="yacht-direction">
+                    <option value="horizontal">horizontal</option>
+                    <option value="vertical">vertical</option>
+                </select>
+
+                <button type="submit" class="ship-submit" data-ship="cruise" data-index="4">Submit</button>
 
             </div>
         </div>
         <div class="ai-ui">
+            <h1 id="ai-title">AI</h1>
             <div class="ai-board-div"></div>
-
         </div>
     </div>
 </body>

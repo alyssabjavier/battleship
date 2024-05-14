@@ -1,10 +1,16 @@
 import { Ship, Gameboard, Player } from "./game-components";
 
 const container = document.querySelector('.container');
-const userUI = document.querySelector('.user-ui');
-const AIUI = document.querySelector('.ai-ui')
+const userTitle = document.querySelector('#user-title');
+console.log(userTitle);
+const AITitle = document.querySelector('#ai-title')
+console.log(AITitle);
 const userBoardDiv = document.querySelector('.user-board-div')
 const AIBoardDiv = document.querySelector('.ai-board-div')
+const formRow = document.querySelectorAll('.ship-row');
+const formColumn = document.querySelectorAll('.ship-column');
+const formDirection = document.querySelectorAll('.ship-direction');
+const shipButtons = document.querySelectorAll('.ship-submit')
 
 const gameUI = {
     
@@ -15,6 +21,7 @@ const gameUI = {
     initializeGame() {
         this.playerUser = new Player('User');
         this.playerAI = new Player('AI');
+        this.activePlayer = this.playerUser;
         this.generateGameboard(userBoardDiv, this.playerUser);
         this.generateGameboard(AIBoardDiv, this.playerAI);
     },
@@ -23,8 +30,8 @@ const gameUI = {
         const gridCell = document.createElement('div');
         gridCell.classList.add('grid-cell');
         gridCell.setAttribute('data-player', player.type);
-        gridCell.setAttribute('data-row', (row + 1));
-        gridCell.setAttribute('data-column', (column + 1));
+        gridCell.setAttribute('data-row', (row));
+        gridCell.setAttribute('data-column', (column));
         gridCell.textContent = '';
         boardDiv.appendChild(gridCell);
 
@@ -42,19 +49,19 @@ const gameUI = {
     updateCell(row, column, player) {
         const gridCell = document.querySelector(`.grid-cell[data-player="${player.type}"][data-row="${row}"][data-column="${column}"]`);
         if (player == this.playerUser) {
-            if (player.board.grid[row-1][column-1] === null || 
-                player.board.grid[row-1][column-1] === 'H' || 
-                player.board.grid[row-1][column-1] === 'M') {
-                    gridCell.textContent = player.board.grid[row-1][column-1];
+            if (player.board.grid[row][column] === null || 
+                player.board.grid[row][column] === 'H' || 
+                player.board.grid[row][column] === 'M') {
+                    gridCell.textContent = player.board.grid[row][column]; // if hit or miss
                 } else {
-                    gridCell.textContent = `${player.board.grid[row-1][column-1].type}`;
+                    gridCell.textContent = `${player.board.grid[row][column].type}`; // if ship => display ship type
                 }
         }
         if (player == this.playerAI) {
-            if (player.board.grid[row-1][column-1] === null || 
-                player.board.grid[row-1][column-1] === 'H' || 
-                player.board.grid[row-1][column-1] === 'M') {
-                    gridCell.textContent = player.board.grid[row-1][column-1];
+            if (player.board.grid[row][column] === null || 
+                player.board.grid[row][column] === 'H' || 
+                player.board.grid[row][column] === 'M') {
+                    gridCell.textContent = player.board.grid[row][column];
                 } else {
                     gridCell.textContent = null;
                 }
@@ -66,41 +73,105 @@ const gameUI = {
         const column = event.target.getAttribute('data-column');
         const player = event.target.getAttribute('data-player');
         if (player == 'User') {
-            this.playerUser.board.receiveAttack(row, column);
-            this.updateCell(row, column, this.playerUser);
-            // this.activePlayer = this.playerAI;
+            if (this.activePlayer == this.playerAI) {
+                this.playerUser.board.receiveAttack(row, column);
+                this.playerUser.board.areShipsSunk();
+                if (this.playerUser.board.areShipsSunk()) {
+                    this.displayVictory(this.playerAI);
+                }
+                this.updateCell(row, column, this.playerUser);
+                this.activePlayer = this.playerUser;
+            }
         } else if (player == 'AI') {
-            this.playerAI.board.receiveAttack(row, column);
-            this.updateCell(row, column, this.playerAI);
-            // this.activePlayer = this.playerUser;
+            if (this.activePlayer == this.playerUser) {
+                this.playerAI.board.receiveAttack(row, column);
+                if (this.playerAI.board.areShipsSunk()) {
+                    this.displayVictory(this.playerUser);
+                }
+                this.updateCell(row, column, this.playerAI);
+                this.activePlayer = this.playerAI;
+                this.AIAttackUser();
+            }
         } else {
             return null;
         }
-    }
+    },
+
+    displayVictory(player) {
+        if (player == this.playerAI) {
+            AITitle.textContent = 'AI wins!';
+        } else if (player == this.playerUser) {
+            userTitle.textContent = 'you win!';
+        }
+    },
+
+    AIAttackUser() {
+        function randomInt() {
+            return Math.floor(Math.random() * 10);
+        }
+        let randomRow = randomInt();
+        let randomCol = randomInt();
+        let target = this.playerUser.board.grid[randomRow][randomCol];
+
+        if (target == 'H' || target == 'M') {
+            this.AIAttackUser();
+        } else {
+            this.playerUser.board.receiveAttack(randomRow, randomCol);
+            this.updateCell(randomRow, randomCol, this.playerUser);
+            this.activePlayer = this.playerUser;
+        }
+    },
+
+    placeAndRenderShip(event) {
+        const shipName = event.target.getAttribute('data-ship');
+        const shipIndex = event.target.getAttribute('data-index');
+        const ship = this.playerUser.board.ships[shipIndex];
+
+        const row = (parseInt(document.querySelector(`.ship-row.${shipName}`).value, 10))-1;
+        const column = (parseInt(document.querySelector(`.ship-column.${shipName}`).value, 10))-1;
+        const direction = document.querySelector(`.ship-direction.${shipName}`).value;
+
+        this.playerUser.board.placeShip(ship, row, column, direction);
+
+        if (direction == 'horizontal') {
+            for (let i = 0; i < ship.length; i++) {
+                this.updateCell(row, column + i, this.playerUser);
+            }
+        } else if (direction == 'vertical') {
+            for (let i = 0; i < ship.length; i++) {
+                this.updateCell(row + i, column, this.playerUser);
+            }
+        }
+
+        const submitBtn = document.querySelector(`.ship-submit[data-ship="${shipName}"`);
+        // submitBtn.removeEventListener('click', handleSubmitClick);
+    },
 
 }
 
+function handleSubmitClick(event) {
+    gameUI.placeAndRenderShip(event);
+}
+
+shipButtons.forEach(button => {
+    button.addEventListener('click', handleSubmitClick);
+});
+
+
 gameUI.initializeGame();
-console.log(gameUI.playerUser);
 
-gameUI.playerUser.board.placeShip(gameUI.playerUser.board.ships[1], 2, 3, 'horizontal');
-console.log(gameUI.playerUser.board);
+function randomShip(board, shipObject) {
+    const randomInt = Math.floor(Math.random() * 10) + 1;
+    const directions = ['horizontal', 'vertical'];
+    const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+    board.placeShip(shipObject, randomInt, randomInt, randomDirection);
+}
 
-gameUI.updateCell(2, 3, gameUI.playerUser);
-gameUI.updateCell(2, 4, gameUI.playerUser);
-gameUI.updateCell(2, 5, gameUI.playerUser);
+gameUI.playerAI.AIPlaceShips();
+console.log(gameUI.playerAI.board);
 
-gameUI.playerUser.board.receiveAttack(2, 4);
-console.log(gameUI.playerUser.board.grid);
-gameUI.updateCell(2, 4, gameUI.playerUser);
 
-gameUI.playerAI.board.placeShip(gameUI.playerUser.board.ships[1], 5, 5, 'horizontal');
-gameUI.playerAI.board.receiveAttack(5,5);
-gameUI.updateCell(5, 5, gameUI.playerAI);
-gameUI.updateCell(5, 6, gameUI.playerAI);
-
-gameUI.playerUser.board.receiveAttack(1,1);
-gameUI.updateCell(1, 1, gameUI.playerUser);
+console.log('hello world 7')
 
 
 export { gameUI }

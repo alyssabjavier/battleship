@@ -4,11 +4,14 @@ class Ship {
         this.length = length;
         this.hitCount = 0;
         this.sunkStatus = this.isSunk();
+        this.isPlaced = false;
     };
 
     hit() {
         this.hitCount++;
         this.sunkStatus = this.isSunk(); // update object's sunk status
+        console.log(`sunkStatus:${this.sunkStatus}`);
+        console.log(`hitCount:${this.hitCount}`);
     }
 
     isSunk() {
@@ -52,41 +55,53 @@ class Gameboard { // 10x10 grid
         return ships;
     }
 
-    placeShip(shipObject, row, column, direction) {
-        column = column - 1;
-        row = row - 1;
+    isOverlapping(shipObject, row, column, direction) {
         const length = shipObject.length;
-        this.ships.push(shipObject);
-
-        if (direction == 'horizontal') {
-            if (column + length > 10) {
-                return 'error - ship cannot be placed outside of bounds of the gameboard';
-            } else {
-                this.grid[row][column] = shipObject;
-                for (let i = 0; i < length; i++) {
-                    this.grid[row][column + i] = shipObject;
+        if (direction === 'horizontal') {
+            for (let i = 0; i < length; i++) {
+                if (this.grid[row][column + i] != null) {
+                    return true;
                 }
             }
-        } 
-        
-        else if (direction == 'vertical') {
-            if (row + length > 10) {
-                return 'error - ship cannot be placed outside of bounds of the gameboard';
-            } else {
-                this.grid[row][column] = shipObject;
-                for (let i = 0; i < length; i++) {
-                    this.grid[row + i][column] = shipObject;
+        } else if (direction === 'vertical') {
+            for (let i = 0; i < length; i++) {
+                if (this.grid[row + i][column] != null) {
+                    return true;
                 }
             }
         }
+        return false;
+    }
+
+    placeShip(shipObject, row, column, direction) {
+        // column = column - 1;
+        // row = row - 1;
+        const length = shipObject.length;
+
+        // check for out of bounds
+        if (direction === 'horizontal' && column + length > 10 || direction === 'vertical' && row + length > 10) {
+            return 'error - ship cannot be placed outside of bounds of the gameboard';
+        }
+
+        // check for overlap
+        if (this.isOverlapping(shipObject, row, column, direction)) {
+            return 'error - ship overlaps with another ship';
+        }
+
+        for (let i = 0; i < length; i++) {
+            if (direction === 'horizontal') {
+                this.grid[row][column + i] = shipObject;
+            } else if (direction === 'vertical') {
+                this.grid[row + i][column] = shipObject;
+            }
+        }
+
+        shipObject.isPlaced = true;
 
         return this.grid;
     }
 
     receiveAttack(row, column) {
-        column = column - 1;
-        row = row - 1;
-
         if (this.grid[row][column] == 'M' || this.grid[row][column] == 'H') { // if already hit or missed
             return 'error - coordinate already marked'
         }
@@ -98,6 +113,7 @@ class Gameboard { // 10x10 grid
         else {
             this.grid[row][column].hit();
             this.grid[row][column] = 'H'; // H = hit
+            this.areShipsSunk();
         }
         
         return this.grid;
@@ -110,8 +126,11 @@ class Gameboard { // 10x10 grid
                 counter++;
             }
         })
+        console.log(`counter:${counter}`);
+        console.log(`areShipsSunk:${counter == this.ships.length}`)
         return counter == this.ships.length;
     }
+
 }
 
 class Player {
@@ -119,6 +138,26 @@ class Player {
         this.type = type;
         this.board = new Gameboard;
     }
+
+    randomPlaceShip(shipObject) {
+        function randomInt() {
+            return Math.floor(Math.random() * 10);
+        }
+        function randomDirection() {
+            const directions = ['horizontal', 'vertical'];
+            return directions[Math.floor(Math.random() * directions.length)];
+        }
+        this.board.placeShip(shipObject, randomInt(), randomInt(), randomDirection());
+    }
+
+    AIPlaceShips() {
+        this.board.ships.forEach((shipObject) => {
+            while (!shipObject.isPlaced) {
+                this.randomPlaceShip(shipObject)
+            }
+        })
+    }
 }
+
 
 export { Ship, Gameboard, Player }
